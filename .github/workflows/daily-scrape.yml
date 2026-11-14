@@ -1,0 +1,35 @@
+
+name: Daily Results Scraper
+
+on:
+  schedule:
+    # Run at 08:00 AM UTC every day
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install axios cheerio
+
+      - name: Run Scraper Script
+        run: node scripts/scrape.js
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name 'ADSJ Bot'
+          git config --global user.email 'bot@adsj.com'
+          git add public/data/results.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update: Match results" && git push)
